@@ -24,6 +24,7 @@ import com.linkedin.venice.serialization.StoreDeserializerCache;
 import com.linkedin.venice.serializer.RecordDeserializer;
 import com.linkedin.venice.utils.ComplementSet;
 import com.linkedin.venice.utils.ExceptionUtils;
+import com.linkedin.venice.utils.LatencyUtils;
 import com.linkedin.venice.utils.PartitionUtils;
 import com.linkedin.venice.utils.concurrent.VeniceConcurrentHashMap;
 import com.linkedin.venice.utils.lazy.Lazy;
@@ -183,6 +184,20 @@ public class VersionBackend {
       throw new VeniceException("Storage engine is not ready, version=" + this);
     }
     return engine;
+  }
+
+  void warmup() {
+    long startTimeMs = System.currentTimeMillis();
+    LOGGER.info("Start warming up store: {} version: {}", version.getStoreName(), version.getNumber());
+    AbstractStorageEngine engine = storageEngine.get();
+    for (int partition: partitionFutures.keySet()) {
+      engine.warmUpStoragePartition(partition);
+    }
+    LOGGER.info(
+        "Finished warming up store: {} version: {} and warmup took {} ms",
+        version.getStoreName(),
+        version.getNumber(),
+        LatencyUtils.getElapsedTimeFromMsToMs(startTimeMs));
   }
 
   boolean isReportingPushStatus() {

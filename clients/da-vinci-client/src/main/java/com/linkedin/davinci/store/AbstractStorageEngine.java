@@ -755,4 +755,15 @@ public abstract class AbstractStorageEngine<Partition extends AbstractStoragePar
   public AbstractStorageIterator getIterator(int partitionId) {
     throw new UnsupportedOperationException("Method not supported for storage engine");
   }
+
+  public void warmUpStoragePartition(int partitionId) {
+    executeWithSafeGuard(partitionId, () -> {
+      if (!containsPartition(partitionId)) {
+        LOGGER.warn("Partition {}_{} doesn't exist.", getStoreVersionName(), partitionId);
+        return;
+      }
+      AbstractStoragePartition storagePartition = getPartitionOrThrow(partitionId);
+      storagePartition.warmUp();
+    });
+  }
 }

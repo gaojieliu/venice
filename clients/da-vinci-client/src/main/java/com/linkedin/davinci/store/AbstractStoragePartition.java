@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -15,6 +17,7 @@ import java.util.function.Supplier;
  * on the storage-partition model.
  */
 public abstract class AbstractStoragePartition {
+  protected final Logger logger = LogManager.getLogger(getClass());
   protected final Integer partitionId;
 
   public AbstractStoragePartition(Integer partitionId) {
@@ -178,5 +181,13 @@ public abstract class AbstractStoragePartition {
 
   public AbstractStorageIterator getIterator() {
     throw new UnsupportedOperationException("Method not supported for storage engine");
+  }
+
+  /**
+   * Warm-up the database.
+   */
+  public void warmUp() {
+    // Do nothing by default
+    logger.info("Warming up is not implemented by default");
   }
 }

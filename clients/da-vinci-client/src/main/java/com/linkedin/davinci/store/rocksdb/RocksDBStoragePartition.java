@@ -993,4 +993,41 @@ public class RocksDBStoragePartition extends AbstractStoragePartition {
   public AbstractStorageIterator getIterator() {
     return new RocksDBStorageIterator(rocksDB.newIterator());
   }
+
+  @Override
+  public void warmUp() {
+    RocksIterator iterator = null;
+    readCloseRWLock.readLock().lock();
+    try {
+      makeSureRocksDBIsStillOpen();
+      LOGGER.info("Starting warming up database: {}, partition: {}", storeNameAndVersion, partitionId);
+      /**
+       * Since we don't care about the returned value in Java world, so partial result is fine.
+       */
+      byte[] value = new byte[1];
+      // Iterate the whole database
+      iterator = rocksDB.newIterator();
+      long entryCnt = 0;
+      iterator.seekToFirst();
+      while (iterator.isValid()) {
+        rocksDB.get(iterator.key(), value);
+        iterator.next();
+        if (++entryCnt % 100000 == 0) {
+          LOGGER.info("Scanned {} entries from database: {}, partition: {}", entryCnt, storeName, partitionId);
+        }
+      }
+      LOGGER.info(
+          "Scanned {} entries from database: {}, partition: {} during cache warmup",
+          entryCnt,
+          storeName,
+          partitionId);
+    } catch (RocksDBException e) {
+      throw new VeniceException("Encountered RocksDBException while warming up cache", e);
+    } finally {
+      readCloseRWLock.readLock().unlock();
+      if (iterator != null) {
+        iterator.close();
+      }
+    }
+  }
 }

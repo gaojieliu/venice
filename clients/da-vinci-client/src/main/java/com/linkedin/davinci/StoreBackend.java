@@ -116,6 +116,13 @@ public class StoreBackend {
     LOGGER.info("Switching to new version {}, currentVersion {}", version, daVinciCurrentVersion);
     daVinciCurrentVersion = version;
     daVinciCurrentVersionRef.set(version);
+
+    /**
+     * Try to warm-up the database before the swap.
+     */
+    if (version != null) {
+      version.warmup();
+    }
     stats.recordCurrentVersion(version);
   }
 
