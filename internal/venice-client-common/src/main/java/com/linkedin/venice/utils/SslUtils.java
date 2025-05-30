@@ -54,7 +54,7 @@ public class SslUtils {
   public static SSLFactory getVeniceLocalSslFactory() {
     Properties sslProperties = getVeniceLocalSslProperties();
     try {
-      return new DefaultSSLFactory(sslProperties);
+      return toSSLFactoryWithOpenSSLSupport(new DefaultSSLFactory(sslProperties));
     } catch (Exception e) {
       throw new VeniceException("Failed to build Venice local SSL factory.", e);
     }
@@ -156,6 +156,7 @@ public class SslUtils {
       LOGGER.info("Conscrypt is not available, return the original ssl factory");
       return sslFactory;
     }
+    LOGGER.info("Will use openssl");
     SslFactory internalSslFactory = toAlpiniSSLFactory(sslFactory, true);
     return new SSLFactory() {
       @Override

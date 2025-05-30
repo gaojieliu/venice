@@ -107,6 +107,7 @@ public class SslInitializer extends ChannelInitializer<Channel> {
   private ResolveAllByName _resolveAllByName = InetAddress::getAllByName;
 
   private Function<X509Certificate, String> _identityParser;
+  private static final Logger LOGGER = LogManager.getLogger(SslInitializer.class);
 
   public SslInitializer(SslFactory sslFactory, boolean requireSSL) {
     this(sslFactory, requireSSL, null);
@@ -268,6 +269,7 @@ public class SslInitializer extends ChannelInitializer<Channel> {
     } else {
       engine = _sslFactory.createSSLEngine(allocator, true);
     }
+    LOGGER.info("SSLEngine type: " + engine.getClass().getSimpleName());
 
     engine.setUseClientMode(false);
 
@@ -442,25 +444,25 @@ public class SslInitializer extends ChannelInitializer<Channel> {
           if (!isActive()) {
             return "closed";
           }
-          if (_channelHandlerContext.channel().remoteAddress() instanceof InetSocketAddress) {
-            InetSocketAddress remoteAddress = (InetSocketAddress) _channelHandlerContext.channel().remoteAddress();
-            InetAddress reverse = _resolveByAddress.getByAddress(remoteAddress.getAddress().getAddress());
-            for (InetAddress host: _resolveAllByName.getAllByName(reverse.getHostName())) {
-              if (Arrays.equals(host.getAddress(), remoteAddress.getAddress().getAddress())) {
-                if (host.getHostName().equals(remoteAddress.getHostName())) {
-                  String hostName = remoteAddress.getHostName();
-                  initializeSslEngine(remoteAddress);
-                  return hostName;
-                }
-                break;
-              }
-            }
-            throw new UnknownHostException("Remote client failed DNS check: " + reverse);
-          } else {
-            SocketAddress remoteAddress = _channelHandlerContext.channel().remoteAddress();
-            initializeSslEngine(remoteAddress);
-            return remoteAddress.toString();
-          }
+          // if (_channelHandlerContext.channel().remoteAddress() instanceof InetSocketAddress) {
+          // InetSocketAddress remoteAddress = (InetSocketAddress) _channelHandlerContext.channel().remoteAddress();
+          // InetAddress reverse = _resolveByAddress.getByAddress(remoteAddress.getAddress().getAddress());
+          // for (InetAddress host: _resolveAllByName.getAllByName(reverse.getHostName())) {
+          // if (Arrays.equals(host.getAddress(), remoteAddress.getAddress().getAddress())) {
+          // if (host.getHostName().equals(remoteAddress.getHostName())) {
+          // String hostName = remoteAddress.getHostName();
+          // initializeSslEngine(remoteAddress);
+          // return hostName;
+          // }
+          // break;
+          // }
+          // }
+          // throw new UnknownHostException("Remote client failed DNS check: " + reverse);
+          // } else {
+          SocketAddress remoteAddress = _channelHandlerContext.channel().remoteAddress();
+          initializeSslEngine(remoteAddress);
+          return remoteAddress.toString();
+          // }
         }
 
         @Override
