@@ -115,7 +115,7 @@ public abstract class TestRead {
   }
 
   protected boolean isRouterHttp2Enabled() {
-    return false;
+    return true;
   }
 
   protected VeniceClusterWrapper getVeniceCluster() {
